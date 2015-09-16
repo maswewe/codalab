@@ -548,8 +548,9 @@ def get_database_dump():
 @task
 def update_compute_worker():
     run('cd codalab && git pull --rebase')
-    sudo('stop codalab-compute-worker')
-    sudo('start codalab-compute-worker')
+    with settings(warn_only=True):
+        sudo('stop codalab-compute-worker')
+        sudo('start codalab-compute-worker')
 
 
 @task

@@ -8,7 +8,10 @@ import datetime
 import logging
 import logging.config
 import os
+import platform
 import psutil
+import pwd
+import grp
 import signal
 import math
 import select
@@ -188,6 +191,13 @@ def alarm_handler(signum, frame):
     raise ExecutionTimeLimitExceeded
 
 
+def demote(user='workeruser'):
+    def result():
+        os.setgid(grp.getgrnam(user).gr_gid)
+        os.setuid(pwd.getpwnam(user).pw_uid)
+    return result
+
+
 def get_run_func(config):
     """
     Returns the function to invoke in order to do a run given the specified configuration.
@@ -327,7 +337,23 @@ def get_run_func(config):
                 exit_code = None
                 timed_out = False
 
-                evaluator_process = Popen(prog_cmd.split(' '), stdout=stdout, stderr=stderr, env=os.environ)
+                if 'Darwin' not in platform.platform():
+                    # Run as separate user
+                    evaluator_process = Popen(
+                        prog_cmd.split(' '),
+                        preexec_fn=demote(),
+                        # cwd=cwd,  # Not needed ???
+                        stdout=stdout,
+                        stderr=stderr,
+                        env=os.environ
+                    )
+                else:
+                    evaluator_process = Popen(
+                        prog_cmd.split(' '),
+                        stdout=stdout,
+                        stderr=stderr,
+                        env=os.environ
+                    )
 
                 logger.debug("Started process, pid=%s" % evaluator_process.pid)
 
