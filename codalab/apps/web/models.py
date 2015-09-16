@@ -1573,7 +1573,14 @@ class SubmissionScore(models.Model):
     def save(self,*args,**kwargs):
         if self.scoredef.computed is True and self.value:
             raise IntegrityError("Score is computed. Cannot assign a value")
-        super(SubmissionScore,self).save(*args,**kwargs)
+        try:
+            float(self.value)
+            if str(self.value).lower() == 'nan':
+                raise ValueError
+        except ValueError:
+            # Overwrite bad values with 0 so at least something is added
+            self.value = 0.0
+        super(SubmissionScore, self).save(*args, **kwargs)
 
 class PhaseLeaderBoard(models.Model):
     phase = models.OneToOneField(CompetitionPhase,related_name='board')
