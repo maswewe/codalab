@@ -98,7 +98,7 @@ if len(settings.BUNDLE_SERVICE_URL) > 0:
 
         def get_worksheet_uuid(self, spec):
             uuid = None
-            spec = smart_str(spec) # generic clean up just in case
+            spec = smart_str(spec)  # generic clean up just in case
             try:
                 if(spec_util.UUID_REGEX.match(spec)):
                     uuid = spec
@@ -110,16 +110,17 @@ if len(settings.BUNDLE_SERVICE_URL) > 0:
             return uuid
 
 
-        def worksheet(self, uuid, interpreted=False):
+        def worksheet(self, uuid, interpreted=False, fetch_items=True, get_raw=True):
             try:
                 worksheet_info  = self.client.get_worksheet_info(
                                             uuid,
-                                            True,  #fetch_items
+                                            fetch_items,  # fetch_items
                                             True,  # get_permissions
                                 )
             except PermissionError:
                 raise UsageError # forces a not found
-            worksheet_info['raw'] = worksheet_util.get_worksheet_lines(worksheet_info)
+            if get_raw:
+                worksheet_info['raw'] = worksheet_util.get_worksheet_lines(worksheet_info)
             # set permissions
             worksheet_info['edit_permission'] = False
             if worksheet_info['permission'] == GROUP_OBJECT_PERMISSION_ALL:
@@ -141,7 +142,15 @@ if len(settings.BUNDLE_SERVICE_URL) > 0:
                 for item in worksheet_info['items']:
                     if item['mode'] in ['html', 'contents']:
                         # item['name'] in ['stdout', 'stderr']
-                        item['interpreted'] = map(base64.b64decode, item['interpreted'])
+                        if item['interpreted'] is None:
+                            item['interpreted'] = ['MISSING']
+                        else:
+                            item['interpreted'] = map(base64.b64decode, item['interpreted'])
+                    elif item['mode'] == 'table':
+                        for row_map in item['interpreted'][1]:
+                            for k, v in row_map.iteritems():
+                                if v is None:
+                                     row_map[k] = 'MISSING'
                     elif 'bundle_info' in item:
                         for bundle_info in item['bundle_info']:
                             try:

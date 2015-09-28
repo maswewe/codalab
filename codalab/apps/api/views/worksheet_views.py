@@ -269,8 +269,6 @@ class WorksheetsCommandApi(views.APIView):
     """
     def post(self, request):
         user = self.request.user
-        if not user.id:
-            return Response(None, status=401)
         data = json.loads(request.body)
         if not data.get('worksheet_uuid', None) or not data.get('command', None):
             return Response("Must have worksheet uuid and command", status=status.HTTP_400_BAD_REQUEST)
@@ -356,6 +354,12 @@ class BundleInfoApi(views.APIView):
                     new_metadata['architectures'] = architectures
 
                 # update and return
+                # json load only gives string, convert them into needed type
+                new_metadata['request_cpus'] = int(new_metadata['request_cpus']);
+                new_metadata['request_gpus'] = int(new_metadata['request_gpus']);
+                new_metadata['request_priority'] = int(new_metadata['request_priority']);
+                new_metadata['actions'] = new_metadata['actions'].split();
+                new_metadata['exitcode'] = int(new_metadata['exitcode']);
                 print new_metadata
                 service.update_bundle_metadata(uuid, new_metadata)
                 bundle_info = service.get_bundle_info(uuid)
