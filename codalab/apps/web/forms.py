@@ -56,6 +56,7 @@ class CompetitionPhaseForm(forms.ModelForm):
             'input_data_organizer_dataset',
             'reference_data_organizer_dataset',
             'scoring_program_organizer_dataset',
+            'phase_never_ends',
         )
         widgets = {
             'leaderboard_management_mode' : forms.Select(
@@ -176,6 +177,7 @@ class UserSettingsForm(forms.ModelForm):
             'organizer_status_updates',
             'organizer_direct_message_updates',
             'organization_or_affiliation',
+            'email_on_submission_finished_successfully',
             'team_name',
             'team_members',
             'method_name',

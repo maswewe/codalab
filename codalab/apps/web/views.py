@@ -495,6 +495,7 @@ def competition_submission_metadata_page(request, competition_id, phase_id):
     return render(request, "web/competitions/submission_metadata.html", {
         'competition': competition,
         'selected_phase': selected_phase,
+        'stretch_100_percent_width': True
     })
 
 
@@ -850,6 +851,10 @@ class MyCompetitionSubmissionsPage(LoginRequiredMixin, TemplateView):
                 'name': 'submitted_by'
             },
             {
+                'label': 'SUBMISSION ID',
+                'name': 'submission_pk'
+            },
+            {
                 'label': 'FILENAME',
                 'name': 'filename'
             },
@@ -884,6 +889,7 @@ class MyCompetitionSubmissionsPage(LoginRequiredMixin, TemplateView):
                 'exception_details': submission.exception_details,
                 'description': submission.description,
                 'is_public': submission.is_public,
+                'submission_pk': submission.id,
             }
             # add score groups into data columns
             if (submission_info['is_in_leaderboard'] == True):
